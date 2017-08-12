@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.peerpool.model.ActionInvocation;
 import com.peerpool.model.Destination;
 import com.peerpool.model.Drive;
 import com.peerpool.model.InteractiveAction;
@@ -67,6 +68,17 @@ public class PeerPoolService {
 	}
 	
 	public InteractiveMessage needRide(SlackRequest request) {
+		//Extract Time, Destination, User
+		
+		//Search in DB for the Time and Destination
+		
+		//Send back the list of Users for the query.
+		
+		
+		//TODO: (Additional) If none available, send him a notif saying that we will inform you once we have a ride available for him
+		//      Queue this in an unanswered request list
+		//      Notify him via webhook once a ride is available.
+		
 		InteractiveMessage response = new InteractiveMessage();
     	response.setText("Hello THere! Here are your options:");
     	List<InteractiveAttachment> attachments = new ArrayList<InteractiveAttachment>();
@@ -88,8 +100,23 @@ public class PeerPoolService {
     	attachment.setCallback_id("1234");
     	attachment.setText("Options");
     	attachment.setFallback("SOrry");
+    	attachment.setAttachment_type("default");
     	attachments.add(attachment);
     	response.setAttachments(attachments);
 		return response;
+	}
+	
+	public InteractiveMessage rideWith(ActionInvocation request) {
+		//Search for the ride mentioned in the request if still available.
+		
+		//If available, set as accepted and send a notification (via webhook) to the Driver and send back drive username and details to the 
+		//    guy who booked the ride.
+		
+		//If not available, send him a refreshed list by processing the needRide list.
+		
+		
+		InteractiveMessage response = new InteractiveMessage();
+    	response.setText("Hello THere! Your ride with "+request.getActions().get(0).getValue()+" has been reserved. Enjoy the ride!");
+    	return response;
 	}
 }

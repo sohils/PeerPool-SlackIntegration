@@ -14,6 +14,8 @@ public class ActionInvocation {
 	private String token;
 	private InteractiveMessage original_message;
 	private String response_url;
+	private boolean is_app_unfurl;
+	private String trigger_id;
 	public List<InteractiveAction> getActions() {
 		return actions;
 	}
@@ -79,5 +81,17 @@ public class ActionInvocation {
 	}
 	public void setResponse_url(String response_url) {
 		this.response_url = response_url;
+	}
+	public boolean isIs_app_unfurl() {
+		return is_app_unfurl;
+	}
+	public void setIs_app_unfurl(boolean is_app_unfurl) {
+		this.is_app_unfurl = is_app_unfurl;
+	}
+	public String getTrigger_id() {
+		return trigger_id;
+	}
+	public void setTrigger_id(String trigger_id) {
+		this.trigger_id = trigger_id;
 	}
 }

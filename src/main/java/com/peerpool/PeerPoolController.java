@@ -1,5 +1,7 @@
 package com.peerpool;
 
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -8,6 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.peerpool.model.ActionInvocation;
+import com.peerpool.model.ActionInvocationPayload;
 import com.peerpool.model.InteractiveMessage;
 import com.peerpool.model.RegisterDriveResponse;
 import com.peerpool.model.SlackRequest;
@@ -39,7 +45,8 @@ public class PeerPoolController {
 			method = RequestMethod.POST,
 			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<InteractiveMessage> chooseDrive(SlackRequest request) {    	
+	public ResponseEntity<InteractiveMessage> chooseDrive(SlackRequest request) {  
+    	System.out.println(request.getChannel_name());
     	return new ResponseEntity<InteractiveMessage>(service.needRide(request), HttpStatus.OK);
     }
     
@@ -48,10 +55,10 @@ public class PeerPoolController {
 			method = RequestMethod.POST,
 			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<RegisterDriveResponse> rideWith() {
-		RegisterDriveResponse response = new RegisterDriveResponse();
-		response.setText("Hello there. Thank you for booking your drive: ");
-		return new ResponseEntity<RegisterDriveResponse>(response, HttpStatus.OK);
+	public ResponseEntity<InteractiveMessage> rideWith(ActionInvocationPayload request) throws IOException {
+    	ObjectMapper mapper = new ObjectMapper();
+    	ActionInvocation actionRequest = mapper.readValue(request.getPayload(), ActionInvocation.class);
+    	return new ResponseEntity<InteractiveMessage>(service.rideWith(actionRequest), HttpStatus.OK);
     }
     
 }
