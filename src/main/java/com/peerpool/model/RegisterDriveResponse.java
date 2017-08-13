@@ -5,6 +5,7 @@ import java.util.List;
 public class RegisterDriveResponse {
 	private String text;
 	private List<Attachments> attachments;
+	
 	public String getText() {
 		return text;
 	}

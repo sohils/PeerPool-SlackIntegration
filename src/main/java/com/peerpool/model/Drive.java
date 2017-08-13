@@ -6,6 +6,8 @@ import java.util.List;
 public class Drive {
 	private long id;
 	private String userid;
+	private String user_name;
+	private String team_name;
 	private Timestamp time;
 	private Integer seats;
 	private Destination destination;
@@ -46,5 +48,17 @@ public class Drive {
 	}
 	public void setDestination(Destination destination) {
 		this.destination = destination;
+	}
+	public String getUser_name() {
+		return user_name;
+	}
+	public void setUser_name(String user_name) {
+		this.user_name = user_name;
+	}
+	public String getTeam_name() {
+		return team_name;
+	}
+	public void setTeam_name(String team_name) {
+		this.team_name = team_name;
 	}
 }

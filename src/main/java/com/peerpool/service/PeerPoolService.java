@@ -31,7 +31,7 @@ public class PeerPoolService {
 		String text = request.getText();
 		
 		//seperate into components
-		List<String> parts = Arrays.asList(text.split("\\s*,\\s*"));
+		List<String> parts = Arrays.asList(text.split("\\s*;\\s*"));
 		Drive drive = new Drive();
 		List<Destination> via = new ArrayList<Destination>();
 		for(int i=0;i < parts.size(); i++) {
