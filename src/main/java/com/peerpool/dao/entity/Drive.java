@@ -17,7 +17,7 @@ public class Drive {
 	private Timestamp time;
 	private int seats;
 	private String destination;
-	private List<String> via;
+	//private List<String> via;
 	
 	public long getId() {
 		return id;
@@ -61,10 +61,10 @@ public class Drive {
 	public void setDestination(String destination) {
 		this.destination = destination;
 	}
-	public List<String> getVia() {
-		return via;
-	}
-	public void setVia(List<String> via) {
-		this.via = via;
-	}
+//	public List<String> getVia() {
+//		return via;
+//	}
+//	public void setVia(List<String> via) {
+//		this.via = via;
+//	}
 }
