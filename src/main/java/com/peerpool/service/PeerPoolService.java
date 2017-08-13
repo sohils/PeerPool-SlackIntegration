@@ -80,7 +80,7 @@ public class PeerPoolService {
 		//      Notify him via webhook once a ride is available.
 		
 		InteractiveMessage response = new InteractiveMessage();
-    	response.setText("Hello THere! Here are your options:");
+    	response.setText("Hello There! Here are your options:");
     	List<InteractiveAttachment> attachments = new ArrayList<InteractiveAttachment>();
     	InteractiveAction action1 = new InteractiveAction();
     	action1.setName("person");
@@ -99,7 +99,7 @@ public class PeerPoolService {
     	attachment.setActions(actions);
     	attachment.setCallback_id("1234");
     	attachment.setText("Options");
-    	attachment.setFallback("SOrry");
+    	attachment.setFallback("Sorry");
     	attachment.setAttachment_type("default");
     	attachments.add(attachment);
     	response.setAttachments(attachments);
