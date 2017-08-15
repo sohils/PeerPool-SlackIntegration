@@ -50,4 +50,13 @@ public class DriveDAO {
 	public Drive findByID(String id) {
 		return em.find(Drive.class, Long.parseLong(id));
 	}
+	
+	public void addTime(String user_id, String team_name, Timestamp time) {
+		Drive drive = (Drive) em.createQuery("SELECT d from Drive d where d.user_id= :userId AND d.team_name= :teamId")
+				.setParameter("userId", user_id)
+				.setParameter("teamId",team_name)
+				.getSingleResult();
+		drive.setTime(time);
+		em.flush();
+	}
 }

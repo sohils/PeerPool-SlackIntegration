@@ -19,7 +19,7 @@ import com.peerpool.model.ActionInvocation;
 import com.peerpool.model.InteractiveAction;
 import com.peerpool.model.InteractiveAttachment;
 import com.peerpool.model.InteractiveMessage;
-import com.peerpool.model.RegisterDriveResponse;
+import com.peerpool.model.Option;
 import com.peerpool.model.SlackRequest;
 
 @Component
@@ -37,39 +37,26 @@ public class PeerPoolService {
 	 * @param request
 	 * @return
 	 */
-	public RegisterDriveResponse idrive(SlackRequest request) {
+	public InteractiveMessage idrive(SlackRequest request) {
 		//Extract text
 		String text = request.getText();
 
 		//seperate into components
-		List<String> parts = Arrays.asList(text.split(";"));
+		List<String> parts = Arrays.asList(text.split(" via "));
 		Drive drive = new Drive();
 		Set<Destination> via = new HashSet<Destination>();
-		for(int i=0;i < parts.size(); i++) {
-			String keyValue[] = parts.get(i).split("=");
-			switch(keyValue[0]){
-			case "via" :
-				String destinations[] = keyValue[1].split(",");
-				for(int j=0;j<destinations.length;j++){
-					Destination d = new Destination();
-					d.setDestination(destinations[j]);
-					via.add(d);
-				}
-				drive.setVia(via);
-				break;
-			case "to" :
-				Destination d = new Destination();
-				d.setDestination(keyValue[1]);
-				via.add(d);
-				break;
-			case "at" :
-				drive.setTime(Timestamp.valueOf(new SimpleDateFormat("yyyy-MM-dd ").format(new Date()).concat(keyValue[1])));
-				break;
-			case "seats":
-				drive.setSeats(Integer.parseInt(keyValue[1].substring(0, 1)));
-				break;
-			}
+		Destination d = new Destination();
+		d.setDestination(parts.get(0).toLowerCase());
+		via.add(d);
+		String listOfVia[] = parts.get(1).split(",");
+		for(int j=0;j<listOfVia.length;j++){
+			Destination d1 = new Destination();
+			d1.setDestination(listOfVia[j].toLowerCase());
+			via.add(d1);
 		}
+
+		drive.setVia(via);
+
 
 		//extract username
 		drive.setUser_id(request.getUser_id());
@@ -80,8 +67,24 @@ public class PeerPoolService {
 		driveDAO.insertDrive(drive,via);
 
 		//return display response
-		RegisterDriveResponse response = new RegisterDriveResponse();
-		response.setText("Successfully Registered");
+		InteractiveMessage response = new InteractiveMessage();
+		response.setText("Around what time are you expected to leave?");
+		InteractiveAttachment attachment= new InteractiveAttachment();
+		attachment.setText("Lets say around ");
+		attachment.setFallback("Something is worng!");
+		attachment.setCallback_id("setTime");
+		InteractiveAction action = new InteractiveAction();
+		action.setName("time_list");
+		action.setType("select");
+		List<Option> listOfTimes = new ArrayList<Option>();
+		for(int i=5; i<10; i++){
+			listOfTimes.add(new Option(Integer.toString(i)+" PM",Integer.toString(i+12)+":00:00"));
+		}
+		action.setOptions(listOfTimes);
+		attachment.setActions(new ArrayList<InteractiveAction>());
+		attachment.getActions().add(action);
+		response.setAttachments(new ArrayList<InteractiveAttachment>());
+		response.getAttachments().add(attachment);
 		return response;
 	}
 
@@ -96,7 +99,7 @@ public class PeerPoolService {
 			String keyValue[] = parts.get(i).split("=");
 			switch(keyValue[0]){
 			case "to" :
-				
+
 				d.setDestination(keyValue[1]);
 				break;
 			case "at" :
@@ -104,23 +107,23 @@ public class PeerPoolService {
 				break;
 			}
 		}
-		
+
 		String team_id=request.getTeam_id();
-		
+
 		//Search in DB for the Time and Destination
 		List<Drive> drives = driveDAO.searchForDrive(time, d, team_id);
-		
+
 		//Send back the list of Users for the query.
 		InteractiveMessage response = new InteractiveMessage();
 		response.setText("Hello there pool-er! Here are your options:");
 		List<InteractiveAttachment> attachments = new ArrayList<InteractiveAttachment>();
 		List<InteractiveAction> actions =new ArrayList<InteractiveAction>();
-		
+
 		for(Drive drive: drives) {
 			System.out.println("Possible rides: "+drive.getId());
 			InteractiveAction action = new InteractiveAction();
 			action.setName("Persone");
-			action.setText("<@"+drive.getUser_name()+">");
+			action.setText(drive.getUser_name());
 			action.setType("button");
 			action.setValue(String.valueOf(drive.getId()));
 			actions.add(action);
@@ -137,8 +140,35 @@ public class PeerPoolService {
 		//      Queue this in an unanswered request list
 		//      Notify him via webhook once a ride is available.
 
-		
+
 		response.setAttachments(attachments);
+		return response;
+	}
+
+	public InteractiveMessage addTimeDetails(ActionInvocation request) {
+		Timestamp time=Timestamp.valueOf(new SimpleDateFormat("yyyy-MM-dd ").format(new Date()).concat(request.getActions().get(0).getSelected_options().get(0).getValue()));
+		String user_id = request.getUser().getId();
+		String team_id = request.getTeam().getId();
+		driveDAO.addTime(user_id,team_id,time);
+		
+		InteractiveMessage response = new InteractiveMessage();
+		response.setText("How many seats do yo u have to spare?");
+		InteractiveAttachment attachment= new InteractiveAttachment();
+		attachment.setText("About: ");
+		attachment.setFallback("Something is worng!");
+		attachment.setCallback_id("setSeats");
+		InteractiveAction action = new InteractiveAction();
+		action.setName("seats_list");
+		action.setType("select");
+		List<Option> listOfSeats = new ArrayList<Option>();
+		for(int i=1; i<6; i++){
+			listOfSeats.add(new Option(Integer.toString(i)+" seats",Integer.toString(i)));
+		}
+		action.setOptions(listOfSeats);
+		attachment.setActions(new ArrayList<InteractiveAction>());
+		attachment.getActions().add(action);
+		response.setAttachments(new ArrayList<InteractiveAttachment>());
+		response.getAttachments().add(attachment);
 		return response;
 	}
 

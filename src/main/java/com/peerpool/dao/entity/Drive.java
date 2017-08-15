@@ -5,6 +5,8 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -21,6 +23,8 @@ public class Drive {
 	private String user_name;
 	private String user_id;
 	private Timestamp time;
+	@Enumerated(EnumType.STRING)
+	private Progress state;
 	private int seats;
 	
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -68,5 +72,11 @@ public class Drive {
 	}
 	public void setVia(Set<Destination> via) {
 		this.via = via;
+	}
+	public Progress getState() {
+		return state;
+	}
+	public void setState(Progress state) {
+		this.state = state;
 	}
 }

@@ -34,10 +34,10 @@ public class PeerPoolController {
 			method = RequestMethod.POST,
 			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<RegisterDriveResponse> registerDrive(SlackRequest request) {
+	public ResponseEntity<InteractiveMessage> registerDrive(SlackRequest request) {
 		//RegisterDriveResponse response = new RegisterDriveResponse();
 		//response.setText("Hello there. Thank you for registering your drive: <@" + reqeust.getUser_id()+">");
-		return new ResponseEntity<RegisterDriveResponse>(service.idrive(request), HttpStatus.OK);
+		return new ResponseEntity<InteractiveMessage>(service.idrive(request), HttpStatus.OK);
     }
     
     @RequestMapping(
@@ -56,8 +56,14 @@ public class PeerPoolController {
 			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<InteractiveMessage> rideWith(ActionInvocationPayload request) throws IOException {
+    	
     	ObjectMapper mapper = new ObjectMapper();
+    	
     	ActionInvocation actionRequest = mapper.readValue(request.getPayload(), ActionInvocation.class);
+    	
+    	if(actionRequest.getCallback_id().equals("setTime")){
+    		return new ResponseEntity<InteractiveMessage>(service.addTimeDetails(actionRequest), HttpStatus.OK);
+    	}
     	return new ResponseEntity<InteractiveMessage>(service.rideWith(actionRequest), HttpStatus.OK);
     }
     
