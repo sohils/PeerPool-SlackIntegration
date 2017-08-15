@@ -171,6 +171,18 @@ public class PeerPoolService {
 		attachment.getActions().add(action);
 		response.setAttachments(new ArrayList<InteractiveAttachment>());
 		response.getAttachments().add(attachment);
+		response.setReplace_original(true);
+		return response;
+	}
+	
+	public InteractiveMessage addSeatDetails(ActionInvocation request) {
+		String seats=request.getActions().get(0).getSelected_options().get(0).getValue();
+		String user_id = request.getUser().getId();
+		String team_id = request.getTeam().getId();
+		driveDAO.addSeats(user_id,team_id,seats);
+		InteractiveMessage response = new InteractiveMessage();
+		response.setText("Successfully Registered! :)");
+		response.setReplace_original(true);
 		return response;
 	}
 

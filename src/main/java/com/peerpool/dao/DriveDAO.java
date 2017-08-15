@@ -59,4 +59,13 @@ public class DriveDAO {
 		drive.setTime(time);
 		em.flush();
 	}
+	
+	public void addSeats(String user_id, String team_name, String seats) {
+		Drive drive = (Drive) em.createQuery("SELECT d from Drive d where d.user_id= :userId AND d.team_name= :teamId")
+				.setParameter("userId", user_id)
+				.setParameter("teamId",team_name)
+				.getSingleResult();
+		drive.setSeats(Integer.parseInt(seats));
+		em.flush();
+	}
 }
