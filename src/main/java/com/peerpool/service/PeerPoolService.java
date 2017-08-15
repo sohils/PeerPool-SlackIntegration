@@ -153,7 +153,8 @@ public class PeerPoolService {
 
 
 		InteractiveMessage response = new InteractiveMessage();
-		response.setText("Hello THere! Your ride with <@"+drive.getUser_id()+"> has been reserved. Enjoy the ride!");
+		response.setText("Hello there! Your ride with <@"+drive.getUser_id()+"> has been reserved. Enjoy the ride!");
+		response.setReplace_original(true);
 		return response;
 	}
 }
