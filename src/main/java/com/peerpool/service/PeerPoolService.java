@@ -73,6 +73,8 @@ public class PeerPoolService {
 
 		//extract username
 		drive.setUser_id(request.getUser_id());
+		drive.setUser_name(request.getUser_name());
+		drive.setTeam_name(request.getTeam_id());
 
 		//persist in DB
 		driveDAO.insertDrive(drive,via);
