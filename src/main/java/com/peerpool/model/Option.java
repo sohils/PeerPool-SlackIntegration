@@ -4,6 +4,10 @@ public class Option {
 	private String text;
 	private String value;
 	
+	public Option() {
+		
+	}
+	
 	public Option(String name, String value){
 		this.text=name;
 		this.value=value;
