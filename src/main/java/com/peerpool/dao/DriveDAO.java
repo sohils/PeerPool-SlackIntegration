@@ -26,12 +26,16 @@ public class DriveDAO {
 				.setParameter("userId", drive.getUser_id())
 				.setParameter("teamId", drive.getTeam_name())
 				.getResultList();
+		
 		if(listDrive.size()==0){
+			for(Destination d : via){
+				d.setDrive(drive);
+			}
+			drive.setVia(via);
 			Iterator<Destination> setIterator = via.iterator();
 			while(setIterator.hasNext()){
 				em.persist(setIterator.next());
 			}
-			drive.setVia(via);
 			em.persist(drive);
 			return true;
 		}

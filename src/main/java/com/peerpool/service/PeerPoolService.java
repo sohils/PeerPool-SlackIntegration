@@ -83,7 +83,7 @@ public class PeerPoolService {
 			action.setText("Pick a time ...");
 			List<Option> listOfTimes = new ArrayList<Option>();
 			for(int i=5; i<10; i++){
-				listOfTimes.add(new Option(Integer.toString(i)+" PM",Integer.toString(i+12)+":00:00"));
+				listOfTimes.add(new Option(Integer.toString(i)+" PM",Integer.toString(i+12)+":00:00.0"));
 			}
 			action.setOptions(listOfTimes);
 			attachment.setActions(new ArrayList<InteractiveAction>());
@@ -145,6 +145,7 @@ public class PeerPoolService {
 			action.setType("button");
 			action.setValue(String.valueOf(drive.getId()));
 			actions.add(action);
+			System.out.println(drive.getUser_name()+" is ready to go");
 		}
 		InteractiveAttachment attachment= new InteractiveAttachment();
 		attachment.setActions(actions);
