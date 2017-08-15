@@ -1,23 +1,31 @@
 package com.peerpool.dao.entity;
 
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 
 @Entity
 public class Drive {
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 	private String team_name;
 	private String user_name;
 	private String user_id;
 	private Timestamp time;
 	private int seats;
-	private String destination;
-	//private List<String> via;
+	
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "drive_id")
+	private Set<Destination> via;
 	
 	public long getId() {
 		return id;
@@ -55,16 +63,10 @@ public class Drive {
 	public void setSeats(int seats) {
 		this.seats = seats;
 	}
-	public String getDestination() {
-		return destination;
+	public Set<Destination> getVia() {
+		return via;
 	}
-	public void setDestination(String destination) {
-		this.destination = destination;
+	public void setVia(Set<Destination> via) {
+		this.via = via;
 	}
-//	public List<String> getVia() {
-//		return via;
-//	}
-//	public void setVia(List<String> via) {
-//		this.via = via;
-//	}
 }
