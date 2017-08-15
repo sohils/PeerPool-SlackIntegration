@@ -21,15 +21,15 @@ import com.peerpool.service.PeerPoolService;
 
 @RestController
 public class PeerPoolController {
-	
+
 	@Autowired PeerPoolService service;
-    
-    @RequestMapping("/")
-    public String index() {
-        return "Greetings from Spring Boot!";
-    }
-    
-    @RequestMapping(
+
+	@RequestMapping("/")
+	public String index() {
+		return "Greetings from Spring Boot!";
+	}
+
+	@RequestMapping(
 			value="/idrive", 
 			method = RequestMethod.POST,
 			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
@@ -38,33 +38,35 @@ public class PeerPoolController {
 		//RegisterDriveResponse response = new RegisterDriveResponse();
 		//response.setText("Hello there. Thank you for registering your drive: <@" + reqeust.getUser_id()+">");
 		return new ResponseEntity<InteractiveMessage>(service.idrive(request), HttpStatus.OK);
-    }
-    
-    @RequestMapping(
+	}
+
+	@RequestMapping(
 			value="/choosedrive", 
 			method = RequestMethod.POST,
 			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<InteractiveMessage> chooseDrive(SlackRequest request) {  
-    	System.out.println(request.getChannel_name());
-    	return new ResponseEntity<InteractiveMessage>(service.needRide(request), HttpStatus.OK);
-    }
-    
-    @RequestMapping(
+		System.out.println(request.getChannel_name());
+		return new ResponseEntity<InteractiveMessage>(service.needRide(request), HttpStatus.OK);
+	}
+
+	@RequestMapping(
 			value="/ridewith", 
 			method = RequestMethod.POST,
 			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<InteractiveMessage> rideWith(ActionInvocationPayload request) throws IOException {
-    	
-    	ObjectMapper mapper = new ObjectMapper();
-    	
-    	ActionInvocation actionRequest = mapper.readValue(request.getPayload(), ActionInvocation.class);
-    	
-    	if(actionRequest.getCallback_id().equals("setTime")){
-    		return new ResponseEntity<InteractiveMessage>(service.addTimeDetails(actionRequest), HttpStatus.OK);
-    	}
-    	return new ResponseEntity<InteractiveMessage>(service.rideWith(actionRequest), HttpStatus.OK);
-    }
-    
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		ActionInvocation actionRequest = mapper.readValue(request.getPayload(), ActionInvocation.class);
+
+		if(actionRequest.getCallback_id().equals("setTime")){
+			return new ResponseEntity<InteractiveMessage>(service.addTimeDetails(actionRequest), HttpStatus.OK);
+		} if(actionRequest.getCallback_id().equals("setSeats")) {
+			return new ResponseEntity<InteractiveMessage>(service.addSeatDetails(actionRequest), HttpStatus.OK);
+		}
+		return new ResponseEntity<InteractiveMessage>(service.rideWith(actionRequest), HttpStatus.OK);
+	}
+
 }
