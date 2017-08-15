@@ -105,9 +105,10 @@ public class PeerPoolService {
 			}
 		}
 		
+		String team_id=request.getTeam_id();
 		
 		//Search in DB for the Time and Destination
-		List<Drive> drives = driveDAO.searchForDrive(time, d);
+		List<Drive> drives = driveDAO.searchForDrive(time, d, team_id);
 		
 		//Send back the list of Users for the query.
 		InteractiveMessage response = new InteractiveMessage();
@@ -143,6 +144,7 @@ public class PeerPoolService {
 
 	public InteractiveMessage rideWith(ActionInvocation request) {
 		//Search for the ride mentioned in the request if still available.
+		Drive drive = driveDAO.findByID(request.getActions().get(0).getValue());
 
 		//If available, set as accepted and send a notification (via webhook) to the Driver and send back drive username and details to the 
 		//    guy who booked the ride.
@@ -151,7 +153,7 @@ public class PeerPoolService {
 
 
 		InteractiveMessage response = new InteractiveMessage();
-		response.setText("Hello THere! Your ride with "+request.getActions().get(0).getValue()+" has been reserved. Enjoy the ride!");
+		response.setText("Hello THere! Your ride with <@"+drive.getUser_id()+"> has been reserved. Enjoy the ride!");
 		return response;
 	}
 }

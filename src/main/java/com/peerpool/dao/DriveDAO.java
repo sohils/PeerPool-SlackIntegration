@@ -30,7 +30,7 @@ public class DriveDAO {
 		em.persist(drive);
 	}
 	
-	public List<Drive> searchForDrive(Timestamp time, Destination d) {
+	public List<Drive> searchForDrive(Timestamp time, Destination d, String team_id) {
 		//List<String> listOfUsers = new ArrayList<String>();
 		Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(time.getTime());
@@ -38,12 +38,16 @@ public class DriveDAO {
         Timestamp later = new Timestamp(cal.getTime().getTime());
         cal.add(Calendar.MINUTE, -60);
         Timestamp before = new Timestamp(cal.getTime().getTime());
-		List<Drive> listOfDrives = em.createQuery("SELECT d from Drive d JOIN d.via dest WHERE d.seats>0 AND dest.destination = :drop AND d.time<= :later AND d.time>= :before ")
+		List<Drive> listOfDrives = em.createQuery("SELECT d from Drive d JOIN d.via dest WHERE d.seats>0 AND dest.destination = :drop AND d.time<= :later AND d.time>= :before AND d.team_name= :teamid")
 				.setParameter("drop", d.getDestination())
 				.setParameter("before", before)
 				.setParameter("later", later)
+				.setParameter("teamid", team_id)
 				.getResultList();
 		return listOfDrives;
 	}
 
+	public Drive findByID(String id) {
+		return em.find(Drive.class, Integer.parseInt(id));
+	}
 }
