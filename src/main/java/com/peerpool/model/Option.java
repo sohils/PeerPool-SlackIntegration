@@ -1,11 +1,11 @@
 package com.peerpool.model;
 
 public class Option {
-	private String name;
+	private String text;
 	private String value;
 	
 	public Option(String name, String value){
-		this.name=name;
+		this.text=name;
 		this.value=value;
 	}
 
@@ -17,11 +17,11 @@ public class Option {
 		this.value = value;
 	}
 
-	public String getName() {
-		return name;
+	public String getText() {
+		return text;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setText(String name) {
+		this.text = name;
 	}
 }
