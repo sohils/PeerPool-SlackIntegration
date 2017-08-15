@@ -48,11 +48,13 @@ public class PeerPoolService {
 		Destination d = new Destination();
 		d.setDestination(parts.get(0).toLowerCase());
 		via.add(d);
-		String listOfVia[] = parts.get(1).split(",");
-		for(int j=0;j<listOfVia.length;j++){
-			Destination d1 = new Destination();
-			d1.setDestination(listOfVia[j].toLowerCase());
-			via.add(d1);
+		if(parts.get(1)!=null){
+			String listOfVia[] = parts.get(1).split(",");
+			for(int j=0;j<listOfVia.length;j++){
+				Destination d1 = new Destination();
+				d1.setDestination(listOfVia[j].toLowerCase());
+				via.add(d1);
+			}
 		}
 
 		drive.setVia(via);
@@ -64,29 +66,43 @@ public class PeerPoolService {
 		drive.setTeam_name(request.getTeam_id());
 
 		//persist in DB
-		driveDAO.insertDrive(drive,via);
+		boolean isInsert = driveDAO.insertDrive(drive,via);
 
-		//return display response
-		InteractiveMessage response = new InteractiveMessage();
-		response.setText("Around what time are you expected to leave?");
-		InteractiveAttachment attachment= new InteractiveAttachment();
-		attachment.setText("Lets say around ");
-		attachment.setFallback("Something is worng!");
-		attachment.setCallback_id("setTime");
-		attachment.setAttachment_type("default");
-		InteractiveAction action = new InteractiveAction();
-		action.setName("time_list");
-		action.setType("select");
-		action.setText("Pick a time ...");
-		List<Option> listOfTimes = new ArrayList<Option>();
-		for(int i=5; i<10; i++){
-			listOfTimes.add(new Option(Integer.toString(i)+" PM",Integer.toString(i+12)+":00:00"));
+		if(isInsert){
+			//return display response
+			InteractiveMessage response = new InteractiveMessage();
+			response.setText("Around what time are you expected to leave?");
+			InteractiveAttachment attachment= new InteractiveAttachment();
+			attachment.setText("Lets say around ");
+			attachment.setFallback("Something is worng!");
+			attachment.setCallback_id("setTime");
+			attachment.setAttachment_type("default");
+			InteractiveAction action = new InteractiveAction();
+			action.setName("time_list");
+			action.setType("select");
+			action.setText("Pick a time ...");
+			List<Option> listOfTimes = new ArrayList<Option>();
+			for(int i=5; i<10; i++){
+				listOfTimes.add(new Option(Integer.toString(i)+" PM",Integer.toString(i+12)+":00:00"));
+			}
+			action.setOptions(listOfTimes);
+			attachment.setActions(new ArrayList<InteractiveAction>());
+			attachment.getActions().add(action);
+			response.setAttachments(new ArrayList<InteractiveAttachment>());
+			response.getAttachments().add(attachment);
+			return response;
+		}else {
+			InteractiveMessage response = new InteractiveMessage();
+			response.setText("Looks like you already have a drive registered for today! Use command /canceldrive to remove your existing ride and then/idrive to add a new one again.");
+			return response;
 		}
-		action.setOptions(listOfTimes);
-		attachment.setActions(new ArrayList<InteractiveAction>());
-		attachment.getActions().add(action);
-		response.setAttachments(new ArrayList<InteractiveAttachment>());
-		response.getAttachments().add(attachment);
+	}
+	
+	public InteractiveMessage cancelDrive(SlackRequest request) {
+		driveDAO.deleteDrive(request.getUser_id(), request.getTeam_id());
+		InteractiveMessage response = new InteractiveMessage();
+		response.setText("Drive cancelled! We hope you will register again.");
+		response.setReplace_original(true);
 		return response;
 	}
 
@@ -152,7 +168,7 @@ public class PeerPoolService {
 		String user_id = request.getUser().getId();
 		String team_id = request.getTeam().getId();
 		driveDAO.addTime(user_id,team_id,time);
-		
+
 		InteractiveMessage response = new InteractiveMessage();
 		response.setText("How many seats do yo u have to spare?");
 		InteractiveAttachment attachment= new InteractiveAttachment();
@@ -174,7 +190,7 @@ public class PeerPoolService {
 		response.setReplace_original(true);
 		return response;
 	}
-	
+
 	public InteractiveMessage addSeatDetails(ActionInvocation request) {
 		String seats=request.getActions().get(0).getSelected_options().get(0).getValue();
 		String user_id = request.getUser().getId();

@@ -39,6 +39,17 @@ public class PeerPoolController {
 		//response.setText("Hello there. Thank you for registering your drive: <@" + reqeust.getUser_id()+">");
 		return new ResponseEntity<InteractiveMessage>(service.idrive(request), HttpStatus.OK);
 	}
+	
+	@RequestMapping(
+			value="/canceldrive", 
+			method = RequestMethod.POST,
+			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<InteractiveMessage> cancelDrive(SlackRequest request) {
+		//RegisterDriveResponse response = new RegisterDriveResponse();
+		//response.setText("Hello there. Thank you for registering your drive: <@" + reqeust.getUser_id()+">");
+		return new ResponseEntity<InteractiveMessage>(service.cancelDrive(request), HttpStatus.OK);
+	}
 
 	@RequestMapping(
 			value="/choosedrive", 
