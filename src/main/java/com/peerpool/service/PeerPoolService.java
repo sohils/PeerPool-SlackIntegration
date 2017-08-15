@@ -73,9 +73,11 @@ public class PeerPoolService {
 		attachment.setText("Lets say around ");
 		attachment.setFallback("Something is worng!");
 		attachment.setCallback_id("setTime");
+		attachment.setAttachment_type("default");
 		InteractiveAction action = new InteractiveAction();
 		action.setName("time_list");
 		action.setType("select");
+		action.setText("Pick a time ...");
 		List<Option> listOfTimes = new ArrayList<Option>();
 		for(int i=5; i<10; i++){
 			listOfTimes.add(new Option(Integer.toString(i)+" PM",Integer.toString(i+12)+":00:00"));
