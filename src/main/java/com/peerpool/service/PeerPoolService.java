@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peerpool.client.HTTPRequestClient;
 import com.peerpool.dao.DriveDAO;
@@ -106,20 +107,21 @@ public class PeerPoolService {
 			response.setText("Looks like you already have a drive registered for today! Use command /canceldrive to remove your existing ride and then/idrive to add a new one again.");
 		}
 		
-		ObjectMapper mapper = new ObjectMapper();
-		String jsonInString = mapper.writeValueAsString(response);
-		httpClient.sendPost(request.getResponse_url(), jsonInString);
+		doHTTPPost(request.getResponse_url(), response);
 		
 	}
 	
-	public InteractiveMessage cancelDrive(SlackRequest request) {
+	@Async
+	public void cancelDrive(SlackRequest request) throws ClientProtocolException, IOException {
 		driveDAO.deleteDrive(request.getUser_id(), request.getTeam_id());
 		InteractiveMessage response = new InteractiveMessage();
 		response.setText("Drive cancelled! We hope you will register again.");
 		response.setReplace_original(true);
-		return response;
+		
+		doHTTPPost(request.getResponse_url(), response);
 	}
 
+	
 	public InteractiveMessage needRide(SlackRequest request) {
 		//Extract Time, Destination, User
 		String text = request.getText();
@@ -221,5 +223,11 @@ public class PeerPoolService {
 		response.setText("Hello there! Your ride with <@"+drive.getUser_id()+"> has been reserved. Enjoy the ride!");
 		response.setReplace_original(true);
 		return response;
+	}
+	
+	private void doHTTPPost(String url, InteractiveMessage response) throws ClientProtocolException, IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		String jsonInString = mapper.writeValueAsString(response);
+		httpClient.sendPost(url, jsonInString);
 	}
 }

@@ -45,6 +45,7 @@ public class PeerPoolController {
 		
 		InteractiveMessage response = new InteractiveMessage();
 		response.setText("Hello there. Thank you for registering your drive. We will get back to you shortly with the conformtion of registration!");
+		response.setResponse_type("ephemeral");
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
@@ -53,10 +54,12 @@ public class PeerPoolController {
 			method = RequestMethod.POST,
 			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> cancelDrive(SlackRequest request) {
-		//RegisterDriveResponse response = new RegisterDriveResponse();
-		//response.setText("Hello there. Thank you for registering your drive: <@" + reqeust.getUser_id()+">");
-		return new ResponseEntity<>(service.cancelDrive(request), HttpStatus.OK);
+	public ResponseEntity<Object> cancelDrive(SlackRequest request) throws ClientProtocolException, IOException {
+		service.cancelDrive(request);
+		InteractiveMessage response = new InteractiveMessage();
+		response.setText("Hang on a sec...");
+		response.setResponse_type("ephemeral");
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	@RequestMapping(
