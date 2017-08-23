@@ -75,7 +75,7 @@ public class PeerPoolController {
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> rideWith(ActionInvocationPayload request) throws IOException {
 		doAction(request);
-		return replyWith("Sure!...");
+		return new ResponseEntity<>(null, HttpStatus.OK);
 	}
 	
 	@Async

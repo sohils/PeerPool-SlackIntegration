@@ -256,6 +256,7 @@ public class PeerPoolService {
 		String team_id=request.getTeam().getId();
 
 		InteractiveMessage response = searchByDestinationTimeAndTeam(d, time, team_id);
+		response.setReplace_original(true);
 		doHTTPPost(request.getResponse_url(), response);
 	}
 
