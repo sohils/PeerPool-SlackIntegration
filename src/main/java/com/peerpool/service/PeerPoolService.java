@@ -1,5 +1,6 @@
 package com.peerpool.service;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -9,9 +10,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.http.client.ClientProtocolException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.peerpool.client.HTTPRequestClient;
 import com.peerpool.dao.DriveDAO;
 import com.peerpool.dao.entity.Destination;
 import com.peerpool.dao.entity.Drive;
@@ -28,6 +33,9 @@ public class PeerPoolService {
 	DriveDAO driveDAO;
 
 	@Autowired
+	HTTPRequestClient httpClient;
+	
+	@Autowired
 	public PeerPoolService(DriveDAO driveDAO){
 		this.driveDAO=driveDAO;
 	}
@@ -36,8 +44,13 @@ public class PeerPoolService {
 	 * Registering your drive in the DB.
 	 * @param request
 	 * @return
+	 * @throws IOException 
+	 * @throws ClientProtocolException 
 	 */
-	public InteractiveMessage idrive(SlackRequest request) {
+	@Async
+	public void idrive(SlackRequest request) throws ClientProtocolException, IOException {
+		InteractiveMessage response = new InteractiveMessage();
+		
 		//Extract text
 		String text = request.getText();
 
@@ -70,7 +83,6 @@ public class PeerPoolService {
 
 		if(isInsert){
 			//return display response
-			InteractiveMessage response = new InteractiveMessage();
 			response.setText("Around what time are you expected to leave?");
 			InteractiveAttachment attachment= new InteractiveAttachment();
 			attachment.setText("Lets say around ");
@@ -90,12 +102,14 @@ public class PeerPoolService {
 			attachment.getActions().add(action);
 			response.setAttachments(new ArrayList<InteractiveAttachment>());
 			response.getAttachments().add(attachment);
-			return response;
 		}else {
-			InteractiveMessage response = new InteractiveMessage();
 			response.setText("Looks like you already have a drive registered for today! Use command /canceldrive to remove your existing ride and then/idrive to add a new one again.");
-			return response;
 		}
+		
+		ObjectMapper mapper = new ObjectMapper();
+		String jsonInString = mapper.writeValueAsString(response);
+		httpClient.sendPost(request.getResponse_url(), jsonInString);
+		
 	}
 	
 	public InteractiveMessage cancelDrive(SlackRequest request) {
@@ -112,19 +126,9 @@ public class PeerPoolService {
 		Destination d = new Destination();
 		Timestamp time = new Timestamp(0);
 		//seperate into components
-		List<String> parts = Arrays.asList(text.split(";"));
-		for(int i=0;i < parts.size(); i++) {
-			String keyValue[] = parts.get(i).split("=");
-			switch(keyValue[0]){
-			case "to" :
-
-				d.setDestination(keyValue[1]);
-				break;
-			case "at" :
-				time=Timestamp.valueOf(new SimpleDateFormat("yyyy-MM-dd ").format(new Date()).concat(keyValue[1]));
-				break;
-			}
-		}
+		List<String> parts = Arrays.asList(text.split(" at "));
+		d.setDestination(parts.get(0));
+		time=Timestamp.valueOf(new SimpleDateFormat("yyyy-MM-dd ").format(new Date()).concat(parts.get(1)));
 
 		String team_id=request.getTeam_id();
 
