@@ -156,6 +156,7 @@ public class PeerPoolService {
 			attachment.setAttachment_type("default");
 			attachments.add(attachment);
 			response.setAttachments(attachments);
+			response.setReplace_original(true);
 			doHTTPPost(request.getResponse_url(), response);
 		} else {
 			d.setDestination(parts.get(0).toLowerCase());
