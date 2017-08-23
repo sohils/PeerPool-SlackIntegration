@@ -75,7 +75,7 @@ public class PeerPoolController {
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> rideWith(ActionInvocationPayload request) throws IOException {
 		doAction(request);
-		return replyWith(null);
+		return replyWith("");
 	}
 	
 	@Async
@@ -89,6 +89,9 @@ public class PeerPoolController {
 			break;
 		case "setSeats":
 			service.addSeatDetails(actionRequest);	
+			break;
+		case "selectTime":
+			service.selectTime(actionRequest);
 			break;
 		default:
 			service.rideWith(actionRequest);

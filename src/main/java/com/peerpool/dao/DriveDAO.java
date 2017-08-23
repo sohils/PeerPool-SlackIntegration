@@ -69,6 +69,14 @@ public class DriveDAO {
 				.getResultList();
 		return listOfDrives;
 	}
+	
+	public List<Timestamp> searchForDriveTimes(Destination d, String team_id) {
+		List<Timestamp> listOfTimes= em.createQuery("SELECT d.time from Drive d JOIN d.via dest WHERE d.seats>0 AND dest.destination = :drop AND d.team_name= :teamid")
+				.setParameter("drop", d.getDestination())
+				.setParameter("teamid", team_id)
+				.getResultList();
+		return listOfTimes;
+	}
 
 	public Drive findByID(String id) {
 		return em.find(Drive.class, Long.parseLong(id));

@@ -35,7 +35,7 @@ public class PeerPoolService {
 
 	@Autowired
 	HTTPRequestClient httpClient;
-	
+
 	@Autowired
 	public PeerPoolService(DriveDAO driveDAO){
 		this.driveDAO=driveDAO;
@@ -51,7 +51,7 @@ public class PeerPoolService {
 	@Async
 	public void idrive(SlackRequest request) throws ClientProtocolException, IOException {
 		InteractiveMessage response = new InteractiveMessage();
-		
+
 		//Extract text
 		String text = request.getText();
 
@@ -106,18 +106,18 @@ public class PeerPoolService {
 		}else {
 			response.setText("Looks like you already have a drive registered for today! Use command /canceldrive to remove your existing ride and then/idrive to add a new one again.");
 		}
-		
+
 		doHTTPPost(request.getResponse_url(), response);
-		
+
 	}
-	
+
 	@Async
 	public void cancelDrive(SlackRequest request) throws ClientProtocolException, IOException {
 		driveDAO.deleteDrive(request.getUser_id(), request.getTeam_id());
 		InteractiveMessage response = new InteractiveMessage();
 		response.setText("Drive cancelled! We hope you will register again.");
 		response.setReplace_original(true);
-		
+
 		doHTTPPost(request.getResponse_url(), response);
 	}
 
@@ -129,12 +129,46 @@ public class PeerPoolService {
 		Timestamp time = new Timestamp(0);
 		//seperate into components
 		List<String> parts = Arrays.asList(text.split(" at "));
-		d.setDestination(parts.get(0));
-		time=Timestamp.valueOf(new SimpleDateFormat("yyyy-MM-dd ").format(new Date()).concat(parts.get(1)));
+		if(parts.size()==1) {
+			d.setDestination(parts.get(0).toLowerCase());
+			String team_id=request.getTeam_id();
+			List<Timestamp> times = driveDAO.searchForDriveTimes(d, team_id);
 
-		String team_id=request.getTeam_id();
+			InteractiveMessage response = new InteractiveMessage();
+			response.setText("Hello there pool-er! What time is most suitable for you? :");
+			List<InteractiveAttachment> attachments = new ArrayList<InteractiveAttachment>();
+			List<InteractiveAction> actions =new ArrayList<InteractiveAction>();
 
-		//Search in DB for the Time and Destination
+			for(Timestamp t: times) {
+				InteractiveAction action = new InteractiveAction();
+				action.setName("Time");
+				action.setText(new SimpleDateFormat("HH:mm:ss").format(t));
+				action.setType("button");
+				action.setValue(d.getDestination()+" at "+new SimpleDateFormat("HH:mm:ss").format(t));
+				actions.add(action);
+			}
+
+			InteractiveAttachment attachment= new InteractiveAttachment();
+			attachment.setActions(actions);
+			attachment.setCallback_id("selectTime");
+			attachment.setText("Options are:");
+			attachment.setFallback("Sorry");
+			attachment.setAttachment_type("default");
+			attachments.add(attachment);
+			response.setAttachments(attachments);
+			doHTTPPost(request.getResponse_url(), response);
+		} else {
+			d.setDestination(parts.get(0).toLowerCase());
+			time=Timestamp.valueOf(new SimpleDateFormat("yyyy-MM-dd ").format(new Date()).concat(parts.get(1)));
+
+			String team_id=request.getTeam_id();
+
+			InteractiveMessage response = searchByDestinationTimeAndTeam(d, time, team_id);
+			doHTTPPost(request.getResponse_url(), response);
+		}
+	}
+
+	private InteractiveMessage searchByDestinationTimeAndTeam(Destination d, Timestamp time, String team_id) {
 		List<Drive> drives = driveDAO.searchForDrive(time, d, team_id);
 
 		//Send back the list of Users for the query.
@@ -167,7 +201,7 @@ public class PeerPoolService {
 
 
 		response.setAttachments(attachments);
-		doHTTPPost(request.getResponse_url(), response);
+		return response;
 	}
 
 	public void addTimeDetails(ActionInvocation request) throws ClientProtocolException, IOException {
@@ -209,6 +243,21 @@ public class PeerPoolService {
 		doHTTPPost(request.getResponse_url(), response);
 	}
 
+	public void selectTime(ActionInvocation request) throws ClientProtocolException, IOException {
+		String text = request.getActions().get(0).getValue();
+		Destination d = new Destination();
+		Timestamp time = new Timestamp(0);
+		//seperate into components
+		List<String> parts = Arrays.asList(text.split(" at "));
+		d.setDestination(parts.get(0).toLowerCase());
+		time=Timestamp.valueOf(new SimpleDateFormat("yyyy-MM-dd ").format(new Date()).concat(parts.get(1)));
+
+		String team_id=request.getTeam().getId();
+
+		InteractiveMessage response = searchByDestinationTimeAndTeam(d, time, team_id);
+		doHTTPPost(request.getResponse_url(), response);
+	}
+
 	public void rideWith(ActionInvocation request) throws ClientProtocolException, IOException {
 		//Search for the ride mentioned in the request if still available.
 		Drive drive = driveDAO.findByID(request.getActions().get(0).getValue());
@@ -224,7 +273,9 @@ public class PeerPoolService {
 		response.setReplace_original(true);
 		doHTTPPost(request.getResponse_url(), response);
 	}
-	
+
+
+
 	private void doHTTPPost(String url, InteractiveMessage response) throws ClientProtocolException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		String jsonInString = mapper.writeValueAsString(response);
