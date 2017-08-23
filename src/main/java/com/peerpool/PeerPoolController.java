@@ -7,10 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peerpool.model.ActionInvocation;
 import com.peerpool.model.ActionInvocationPayload;
@@ -42,11 +45,7 @@ public class PeerPoolController {
 			e.printStackTrace();
 		}
 		
-		
-		InteractiveMessage response = new InteractiveMessage();
-		response.setText("Hello there. Thank you for registering your drive. We will get back to you shortly with the conformtion of registration!");
-		response.setResponse_type("ephemeral");
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		return replyWith("Hello there. Thank you for registering your drive. We will get back to you shortly with the conformtion of registration!");
 	}
 	
 	@RequestMapping(
@@ -56,10 +55,7 @@ public class PeerPoolController {
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> cancelDrive(SlackRequest request) throws ClientProtocolException, IOException {
 		service.cancelDrive(request);
-		InteractiveMessage response = new InteractiveMessage();
-		response.setText("Hang on a sec...");
-		response.setResponse_type("ephemeral");
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		return replyWith("Hang on a sec...");
 	}
 
 	@RequestMapping(
@@ -67,9 +63,9 @@ public class PeerPoolController {
 			method = RequestMethod.POST,
 			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> chooseDrive(SlackRequest request) {  
-		System.out.println(request.getChannel_name());
-		return new ResponseEntity<>(service.needRide(request), HttpStatus.OK);
+	public ResponseEntity<Object> chooseDrive(SlackRequest request) throws ClientProtocolException, IOException {  
+		service.needRide(request);
+		return replyWith("Seraching...");
 	}
 
 	@RequestMapping(
@@ -78,17 +74,31 @@ public class PeerPoolController {
 			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> rideWith(ActionInvocationPayload request) throws IOException {
-
+		doAction(request);
+		return replyWith(null);
+	}
+	
+	@Async
+	public void doAction(ActionInvocationPayload request) throws JsonParseException, JsonMappingException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
-
 		ActionInvocation actionRequest = mapper.readValue(request.getPayload(), ActionInvocation.class);
 
-		if(actionRequest.getCallback_id().equals("setTime")){
-			return new ResponseEntity<>(service.addTimeDetails(actionRequest), HttpStatus.OK);
-		} if(actionRequest.getCallback_id().equals("setSeats")) {
-			return new ResponseEntity<>(service.addSeatDetails(actionRequest), HttpStatus.OK);
+		switch(actionRequest.getCallback_id()){
+		case "setTime":
+			service.addTimeDetails(actionRequest);
+			break;
+		case "setSeats":
+			service.addSeatDetails(actionRequest);	
+			break;
+		default:
+			service.rideWith(actionRequest);
 		}
-		return new ResponseEntity<>(service.rideWith(actionRequest), HttpStatus.OK);
+	}
+	
+	private ResponseEntity<Object> replyWith(String text) {
+		InteractiveMessage response = new InteractiveMessage();
+		response.setText(text);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 }

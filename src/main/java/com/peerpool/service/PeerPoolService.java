@@ -81,7 +81,7 @@ public class PeerPoolService {
 
 		//persist in DB
 		boolean isInsert = driveDAO.insertDrive(drive,via);
-
+		response.setReplace_original(true);
 		if(isInsert){
 			//return display response
 			response.setText("Around what time are you expected to leave?");
@@ -121,8 +121,8 @@ public class PeerPoolService {
 		doHTTPPost(request.getResponse_url(), response);
 	}
 
-	
-	public InteractiveMessage needRide(SlackRequest request) {
+	@Async
+	public void needRide(SlackRequest request) throws ClientProtocolException, IOException {
 		//Extract Time, Destination, User
 		String text = request.getText();
 		Destination d = new Destination();
@@ -167,10 +167,10 @@ public class PeerPoolService {
 
 
 		response.setAttachments(attachments);
-		return response;
+		doHTTPPost(request.getResponse_url(), response);
 	}
 
-	public InteractiveMessage addTimeDetails(ActionInvocation request) {
+	public void addTimeDetails(ActionInvocation request) throws ClientProtocolException, IOException {
 		Timestamp time=Timestamp.valueOf(new SimpleDateFormat("yyyy-MM-dd ").format(new Date()).concat(request.getActions().get(0).getSelected_options().get(0).getValue()));
 		String user_id = request.getUser().getId();
 		String team_id = request.getTeam().getId();
@@ -195,10 +195,10 @@ public class PeerPoolService {
 		response.setAttachments(new ArrayList<InteractiveAttachment>());
 		response.getAttachments().add(attachment);
 		response.setReplace_original(true);
-		return response;
+		doHTTPPost(request.getResponse_url(), response);
 	}
 
-	public InteractiveMessage addSeatDetails(ActionInvocation request) {
+	public void addSeatDetails(ActionInvocation request) throws ClientProtocolException, IOException {
 		String seats=request.getActions().get(0).getSelected_options().get(0).getValue();
 		String user_id = request.getUser().getId();
 		String team_id = request.getTeam().getId();
@@ -206,10 +206,10 @@ public class PeerPoolService {
 		InteractiveMessage response = new InteractiveMessage();
 		response.setText("Successfully Registered! :)");
 		response.setReplace_original(true);
-		return response;
+		doHTTPPost(request.getResponse_url(), response);
 	}
 
-	public InteractiveMessage rideWith(ActionInvocation request) {
+	public void rideWith(ActionInvocation request) throws ClientProtocolException, IOException {
 		//Search for the ride mentioned in the request if still available.
 		Drive drive = driveDAO.findByID(request.getActions().get(0).getValue());
 
@@ -222,7 +222,7 @@ public class PeerPoolService {
 		InteractiveMessage response = new InteractiveMessage();
 		response.setText("Hello there! Your ride with <@"+drive.getUser_id()+"> has been reserved. Enjoy the ride!");
 		response.setReplace_original(true);
-		return response;
+		doHTTPPost(request.getResponse_url(), response);
 	}
 	
 	private void doHTTPPost(String url, InteractiveMessage response) throws ClientProtocolException, IOException {
